@@ -1,7 +1,7 @@
 const { ApolloServer, gql } = require('apollo-server-lambda')
 var faunadb = require('faunadb'),
   q = faunadb.query;
-
+require('dotenv').config();
 
 
 
@@ -11,6 +11,8 @@ const typeDefs = gql`
   }
   type Mutation {
     addTodo(task: String!):Todo
+    deleteTodo(id: String): String
+    updateTodo(id: String, done: Boolean): String
   }
   type Todo {
     id: ID!
@@ -23,7 +25,7 @@ const resolvers = {
   Query: {
     todos: async (root, args,context) => {
       try{
-        var adminClient = new faunadb.Client({ secret: 'fnAD-ovF7cACDVrIBSkqCtnP_uqtSS8YESjiYk7-' });
+        var adminClient = new faunadb.Client({ secret: process.env.FAUNA });
         const result = await adminClient.query(
           q.Map(
             q.Paginate(
@@ -50,7 +52,7 @@ const resolvers = {
 Mutation:{
   addTodo:async (_, {task}) =>{
     try{
-      var adminClient = new faunadb.Client({ secret: 'fnAD-ovF7cACDVrIBSkqCtnP_uqtSS8YESjiYk7-' });
+      var adminClient = new faunadb.Client({ secret: process.env.FAUNA });
       const result = await adminClient.query(
         q.Create(
           q.Collection('todos'),
@@ -62,14 +64,32 @@ Mutation:{
           }
         )
       )
-      return result.ref.data
+      return result.data.data
 
   }catch(error){
     console.log(error)
   }
-  }
+  },
+  deleteTodo: async (_, { id }) => {
+    const results = await client.query(
+      q.Delete(q.Ref(q.Collection("todos"), `${id}`))
+    )
+    return results.ref.id
+  },
+  updateTodo: async (_, { id, done }) => {
+    const results = await client.query(
+      q.Update(q.Ref(q.Collection("todos"), `${id}`), {
+        data: {
+          done: !done,
+        },
+      })
+    )
+    return results.ref.id
+
 }
 }
+}
+
 
 const server = new ApolloServer({
   typeDefs,
