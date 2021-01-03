@@ -24,7 +24,7 @@ const resolvers = {
   Query: {
     todos: async (root, args,context) => {
       try{
-        var adminClient = new faunadb.Client({ secret: process.env.FAUNA });
+        var adminClient = new faunadb.Client({ secret: "fnAD-ovF7cACDVrIBSkqCtnP_uqtSS8YESjiYk7-" });
         const result = await adminClient.query(
           q.Map(
             q.Paginate(
@@ -51,7 +51,7 @@ const resolvers = {
 Mutation:{
   addTodo:async (_, {task}) =>{
     try{
-      var adminClient = new faunadb.Client({ secret: process.env.FAUNA });
+      var adminClient = new faunadb.Client({ secret: "fnAD-ovF7cACDVrIBSkqCtnP_uqtSS8YESjiYk7-" });
       const result = await adminClient.query(
         q.Create(
           q.Collection('todos'),
